@@ -55,19 +55,6 @@
       50% { opacity: 0.9; transform: translateY(-40px) scale(1.2); }
       100% { opacity: 0; transform: translateY(-80px) scale(0.8); }
     }
-
-    .respuesta {
-      background: #f9f9f9;
-      padding: 6px 10px;
-      margin: 4px 0;
-      border-radius: 6px;
-      font-size: 0.9rem;
-    }
-    .respuesta small {
-      color: gray;
-      font-size: 0.8rem;
-      margin-left: 5px;
-    }
   </style>
 </head>
 <body>
@@ -123,11 +110,27 @@
     <p>© 2025 Silent Shores. Todos los derechos reservados.</p>
   </footer>
 
-  <script>
-    // Sesión de usuario global
-    let usuarioActual = localStorage.getItem("usuarioActual");
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, getDoc, setDoc, arrayUnion, arrayRemove, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+    // ⚡ Tu configuración de Firebase
+    const firebaseConfig = {
+      apiKey: "TU_API_KEY",
+      authDomain: "silent-shores.firebaseapp.com",
+      projectId: "silent-shores",
+      storageBucket: "silent-shores.appspot.com",
+      messagingSenderId: "300326009498",
+      appId: "1:300326009498:web:b095642c0e7cfed7fcfd23"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Usuario
+    let usuarioActual = localStorage.getItem("usuarioActual");
     const usuarioDiv = document.getElementById("usuario-actual");
+
     if(!usuarioActual){
       usuarioDiv.innerHTML = `Usuario: Anónimo <button id="login-btn">Login</button>`;
       document.getElementById("login-btn").addEventListener("click", ()=>{
@@ -146,172 +149,148 @@
       });
     }
 
-    // Variables
     const historiasLista = document.getElementById("historias-lista");
     const buscador = document.getElementById("buscador");
     const filtroTipo = document.getElementById("filtro-tipo");
-
-    let historiasGuardadas = JSON.parse(localStorage.getItem("historias")) || [];
     const popSound = new Audio("https://actions.google.com/sounds/v1/cartoon/pop.ogg");
 
     // Renderizar publicaciones
-    function renderizarHistorias() {
-      historiasLista.innerHTML = "";
-      const textoBusqueda = buscador.value.toLowerCase();
-      const tipoSeleccionado = filtroTipo.value;
+    function cargarHistorias() {
+      const q = query(collection(db, "historias"), orderBy("fecha","desc"));
+      onSnapshot(q, (snapshot)=>{
+        historiasLista.innerHTML = "";
+        snapshot.forEach(docSnap=>{
+          const historia = docSnap.data();
+          const id = docSnap.id;
 
-      const historiasFiltradas = historiasGuardadas.filter(historia => {
-        const coincideTexto = historia.historia.toLowerCase().includes(textoBusqueda) ||
-                              historia.nombre.toLowerCase().includes(textoBusqueda);
-        const coincideTipo = tipoSeleccionado === "todos" || historia.tipoViolencia === tipoSeleccionado;
-        return coincideTexto && coincideTipo;
-      });
+          // Filtros
+          const textoBusqueda = buscador.value.toLowerCase();
+          const tipoSeleccionado = filtroTipo.value;
+          const coincideTexto = historia.historia.toLowerCase().includes(textoBusqueda) || historia.nombre.toLowerCase().includes(textoBusqueda);
+          const coincideTipo = tipoSeleccionado === "todos" || historia.tipoViolencia === tipoSeleccionado;
+          if(!coincideTexto || !coincideTipo) return;
 
-      if(historiasFiltradas.length === 0){
-        historiasLista.innerHTML = "<p>No se encontraron resultados.</p>";
-        return;
-      }
-
-      historiasFiltradas.forEach((historia,index)=>{
-        if(!historia.reacciones){
-          historia.reacciones = {"💙":{count:0,usuarios:[]},"💪":{count:0,usuarios:[]},"🌸":{count:0,usuarios:[]}};
-        }
-
-        // ✅ Conversión de fecha correcta
-        let fechaFormateada = "Fecha desconocida";
-        if (historia.fecha) {
-          if (historia.fecha.toDate) {
-            const fecha = historia.fecha.toDate();
-            fechaFormateada = fecha.toLocaleDateString("es-ES") + " " + fecha.toLocaleTimeString("es-ES");
-          } else if (typeof historia.fecha === "string") {
-            fechaFormateada = historia.fecha;
-          } else {
-            try {
-              const fecha = new Date(historia.fecha);
-              fechaFormateada = fecha.toLocaleDateString("es-ES") + " " + fecha.toLocaleTimeString("es-ES");
-            } catch(e) {}
+          // Fecha
+          let fechaFormateada = "Fecha desconocida";
+          if(historia.fecha?.toDate){
+            const f = historia.fecha.toDate();
+            fechaFormateada = f.toLocaleDateString("es-ES")+" "+f.toLocaleTimeString("es-ES");
           }
-        }
 
-        const historiaElement = document.createElement("div");
-        historiaElement.classList.add("historia");
-        historiaElement.innerHTML = `
-          <div class="contenido-publicacion">
-            <h3>${historia.nombre} <span class="fecha">(${fechaFormateada})</span></h3>
-            <p>${historia.historia}</p>
-            <p><strong>Tipo de Violencia:</strong> ${historia.tipoViolencia}</p>
-          </div>
-          <div class="reacciones">
-            <i class="icon-abrazo" data-emoji="💙" data-index="${index}">💙</i> <span id="count-💙-${index}">${historia.reacciones["💙"].count}</span>
-            <i class="icon-fuerza" data-emoji="💪" data-index="${index}">💪</i> <span id="count-💪-${index}">${historia.reacciones["💪"].count}</span>
-            <i class="icon-esperanza" data-emoji="🌸" data-index="${index}">🌸</i> <span id="count-🌸-${index}">${historia.reacciones["🌸"].count}</span>
-          </div>
-          <div class="respuestas">
-            <h4>Respuestas:</h4>
-            <div class="respuestas-lista" id="respuestas-${index}"></div>
-            <textarea id="respuesta-text-${index}" placeholder="Escribe tu respuesta..."></textarea>
-            <button onclick="agregarRespuesta(${index})">Responder</button>
-          </div>
-          <hr>
-        `;
-        historiasLista.appendChild(historiaElement);
+          // Reacciones por defecto
+          if(!historia.reacciones){
+            historia.reacciones = {"💙":{count:0,usuarios:[]},"💪":{count:0,usuarios:[]},"🌸":{count:0,usuarios:[]}};
+          }
 
-        // ✅ Cargar respuestas desde localStorage
-        const respuestasGuardadas = JSON.parse(localStorage.getItem(`respuestas-${index}`)) || [];
-        const respuestasLista = document.getElementById(`respuestas-${index}`);
-        respuestasGuardadas.forEach(respuesta => {
-          const respuestaElement = document.createElement("div");
-          respuestaElement.classList.add("respuesta");
-          respuestaElement.innerHTML = `<p><strong>${respuesta.nombre}</strong>: ${respuesta.texto} <small>(${respuesta.fecha})</small></p>`;
-          respuestasLista.appendChild(respuestaElement);
-        });
+          const index = id; // usamos id de Firestore
+          const historiaElement = document.createElement("div");
+          historiaElement.classList.add("historia");
+          historiaElement.innerHTML = `
+            <div class="contenido-publicacion">
+              <h3>${historia.nombre} <span class="fecha">(${fechaFormateada})</span></h3>
+              <p>${historia.historia}</p>
+              <p><strong>Tipo de Violencia:</strong> ${historia.tipoViolencia}</p>
+            </div>
+            <div class="reacciones">
+              <i class="icon-abrazo" data-emoji="💙" data-id="${index}">💙</i> <span id="count-💙-${index}">${historia.reacciones["💙"].count}</span>
+              <i class="icon-fuerza" data-emoji="💪" data-id="${index}">💪</i> <span id="count-💪-${index}">${historia.reacciones["💪"].count}</span>
+              <i class="icon-esperanza" data-emoji="🌸" data-id="${index}">🌸</i> <span id="count-🌸-${index}">${historia.reacciones["🌸"].count}</span>
+            </div>
+            <div class="respuestas">
+              <h4>Respuestas:</h4>
+              <div class="respuestas-lista" id="respuestas-${index}"></div>
+              <textarea id="respuesta-text-${index}" placeholder="Escribe tu respuesta..."></textarea>
+              <button onclick="agregarRespuesta('${index}')">Responder</button>
+            </div>
+            <hr>
+          `;
+          historiasLista.appendChild(historiaElement);
 
-        historiasGuardadas[index] = historia;
-      });
+          // Cargar respuestas
+          cargarRespuestas(index);
 
-      localStorage.setItem("historias", JSON.stringify(historiasGuardadas));
-
-      document.querySelectorAll(".icon-abrazo, .icon-fuerza, .icon-esperanza").forEach(icon=>{
-        icon.addEventListener("click", ()=>{
-          const index = icon.dataset.index;
-          const emoji = icon.dataset.emoji;
-          reaccionar(index,emoji,icon);
+          // Eventos reacciones
+          historiaElement.querySelectorAll(".icon-abrazo, .icon-fuerza, .icon-esperanza").forEach(icon=>{
+            icon.addEventListener("click", ()=> reaccionar(index, icon.dataset.emoji, icon));
+          });
         });
       });
     }
 
-    function reaccionar(index, emoji, icon){
-      const historia = historiasGuardadas[index];
-      const usuario = usuarioActual;
+    // Reacciones
+    async function reaccionar(id,emoji,icon){
+      const historiaRef = doc(db,"historias",id);
+      const snap = await getDoc(historiaRef);
+      const historia = snap.data();
+      if(!historia.reacciones){
+        historia.reacciones = {"💙":{count:0,usuarios:[]},"💪":{count:0,usuarios:[]},"🌸":{count:0,usuarios:[]}};
+      }
 
       let reaccionAnterior = Object.keys(historia.reacciones).find(key =>
-        historia.reacciones[key].usuarios.includes(usuario)
+        historia.reacciones[key].usuarios.includes(usuarioActual)
       );
 
       if(reaccionAnterior === emoji){
         historia.reacciones[emoji].count--;
-        historia.reacciones[emoji].usuarios = historia.reacciones[emoji].usuarios.filter(u=>u!==usuario);
+        historia.reacciones[emoji].usuarios = historia.reacciones[emoji].usuarios.filter(u=>u!==usuarioActual);
       } else {
         if(reaccionAnterior){
           historia.reacciones[reaccionAnterior].count--;
-          historia.reacciones[reaccionAnterior].usuarios = historia.reacciones[reaccionAnterior].usuarios.filter(u=>u!==usuario);
+          historia.reacciones[reaccionAnterior].usuarios = historia.reacciones[reaccionAnterior].usuarios.filter(u=>u!==usuarioActual);
         }
         historia.reacciones[emoji].count++;
-        historia.reacciones[emoji].usuarios.push(usuario);
+        historia.reacciones[emoji].usuarios.push(usuarioActual);
       }
 
-      for(let key in historia.reacciones){
-        document.getElementById(`count-${key}-${index}`).textContent = historia.reacciones[key].count;
-      }
+      await updateDoc(historiaRef,{reacciones:historia.reacciones});
 
-      if(reaccionAnterior !== emoji || reaccionAnterior===null){
-        popSound.currentTime = 0;
-        popSound.play();
-        icon.classList.add("active");
-        setTimeout(()=>icon.classList.remove("active"),800);
+      popSound.currentTime=0;
+      popSound.play();
+      icon.classList.add("active");
+      setTimeout(()=>icon.classList.remove("active"),800);
 
-        const bubble = document.createElement("span");
-        bubble.classList.add("emoji-float");
-        bubble.textContent = emoji;
-        document.body.appendChild(bubble);
-        const rect = icon.getBoundingClientRect();
-        bubble.style.left = rect.left + rect.width/2 + "px";
-        bubble.style.top = rect.top - 10 + "px";
-        setTimeout(()=>bubble.remove(),1000);
-      }
-
-      historiasGuardadas[index] = historia;
-      localStorage.setItem("historias", JSON.stringify(historiasGuardadas));
+      const bubble=document.createElement("span");
+      bubble.classList.add("emoji-float");
+      bubble.textContent=emoji;
+      document.body.appendChild(bubble);
+      const rect=icon.getBoundingClientRect();
+      bubble.style.left=rect.left+rect.width/2+"px";
+      bubble.style.top=rect.top-10+"px";
+      setTimeout(()=>bubble.remove(),1000);
     }
 
-    function agregarRespuesta(index){
-      const textarea = document.getElementById(`respuesta-text-${index}`);
-      const respuestaTexto = textarea.value;
-
-      if(respuestaTexto.trim()!==""){
-        const fecha = new Date();
-        const nuevaRespuesta = {
-          nombre: usuarioActual,
-          texto: respuestaTexto,
-          fecha: fecha.toLocaleDateString("es-ES") + " " + fecha.toLocaleTimeString("es-ES")
-        };
-        let respuestasGuardadas = JSON.parse(localStorage.getItem(`respuestas-${index}`)) || [];
-        respuestasGuardadas.push(nuevaRespuesta);
-        localStorage.setItem(`respuestas-${index}`, JSON.stringify(respuestasGuardadas));
-
-        // limpiar textarea
-        textarea.value = "";
-
-        // volver a renderizar
-        renderizarHistorias();
-      } else {
-        alert("Por favor, escribe una respuesta.");
-      }
+    // Respuestas
+    async function agregarRespuesta(id){
+      const texto=document.getElementById(`respuesta-text-${id}`).value;
+      if(texto.trim()==="") return alert("Por favor, escribe una respuesta.");
+      await addDoc(collection(db,"historias",id,"respuestas"),{
+        nombre:usuarioActual,
+        texto:texto,
+        fecha:new Date()
+      });
+      document.getElementById(`respuesta-text-${id}`).value="";
     }
 
-    buscador.addEventListener("input", renderizarHistorias);
-    filtroTipo.addEventListener("change", renderizarHistorias);
-    renderizarHistorias();
+    function cargarRespuestas(id){
+      const q=query(collection(db,"historias",id,"respuestas"),orderBy("fecha","asc"));
+      onSnapshot(q,(snapshot)=>{
+        const lista=document.getElementById(`respuestas-${id}`);
+        lista.innerHTML="";
+        snapshot.forEach(docSnap=>{
+          const r=docSnap.data();
+          let fecha=""; if(r.fecha?.toDate){ const f=r.fecha.toDate(); fecha=f.toLocaleDateString("es-ES")+" "+f.toLocaleTimeString("es-ES"); }
+          const respuestaElement=document.createElement("div");
+          respuestaElement.classList.add("respuesta");
+          respuestaElement.innerHTML=`<p><strong>${r.nombre}</strong>: ${r.texto} <span class="fecha">(${fecha})</span></p>`;
+          lista.appendChild(respuestaElement);
+        });
+      });
+    }
+
+    buscador.addEventListener("input", cargarHistorias);
+    filtroTipo.addEventListener("change", cargarHistorias);
+
+    cargarHistorias();
   </script>
 </body>
 </html>
