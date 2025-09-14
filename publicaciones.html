@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Publicaciones - Silent Shores</title>
   <link rel="icon" href="imagenes/logo.jpg" type="image/jpeg">
+
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 
@@ -19,6 +20,7 @@
       padding: 4px 8px;
       border-radius: 8px;
     }
+
     .icon-abrazo, .icon-fuerza, .icon-esperanza {
       font-size: 1.6rem;
       cursor: pointer;
@@ -26,24 +28,28 @@
       display: inline-block;
       transition: transform 0.2s;
     }
+
     .icon-abrazo.active,
     .icon-fuerza.active,
     .icon-esperanza.active {
       animation: bounceShake 0.8s ease;
     }
+
     @keyframes bounceShake {
-      0% { transform: translateY(0) rotate(0deg); }
-      30% { transform: translateY(-20px) rotate(-10deg); }
-      50% { transform: translateY(-20px) rotate(10deg); }
-      70% { transform: translateY(-20px) rotate(-10deg); }
+      0%   { transform: translateY(0) rotate(0deg); }
+      30%  { transform: translateY(-20px) rotate(-10deg); }
+      50%  { transform: translateY(-20px) rotate(10deg); }
+      70%  { transform: translateY(-20px) rotate(-10deg); }
       100% { transform: translateY(0) rotate(0deg); }
     }
+
     .emoji-float {
       position: absolute;
       font-size: 1.8rem;
       pointer-events: none;
       animation: floatUp 1s ease forwards;
     }
+
     @keyframes floatUp {
       0% { opacity: 1; transform: translateY(0) scale(1); }
       50% { opacity: 0.9; transform: translateY(-40px) scale(1.2); }
@@ -104,27 +110,11 @@
     <p>© 2025 Silent Shores. Todos los derechos reservados.</p>
   </footer>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
-    import { getFirestore, collection, getDocs, doc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
-
-    // Configuración Firebase
-    const firebaseConfig = {
-      apiKey: "AIzaSyBaFwwQTwrBtQ_BGf-Imp7FIY7dvkVo5Ho",
-      authDomain: "silent-shores.firebaseapp.com",
-      projectId: "silent-shores",
-      storageBucket: "silent-shores.firebasestorage.app",
-      messagingSenderId: "300326009498",
-      appId: "1:300326009498:web:b095642c0e7cfed7fcfd23"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    // Sesión de usuario
+  <script>
+    // Sesión de usuario global
     let usuarioActual = localStorage.getItem("usuarioActual");
-    const usuarioDiv = document.getElementById("usuario-actual");
 
+    const usuarioDiv = document.getElementById("usuario-actual");
     if(!usuarioActual){
       usuarioDiv.innerHTML = `Usuario: Anónimo <button id="login-btn">Login</button>`;
       document.getElementById("login-btn").addEventListener("click", ()=>{
@@ -143,111 +133,152 @@
       });
     }
 
+    // Variables
     const historiasLista = document.getElementById("historias-lista");
     const buscador = document.getElementById("buscador");
     const filtroTipo = document.getElementById("filtro-tipo");
+
+    let historiasGuardadas = JSON.parse(localStorage.getItem("historias")) || [];
     const popSound = new Audio("https://actions.google.com/sounds/v1/cartoon/pop.ogg");
 
-    // Renderizar historias desde Firestore
-    async function renderizarHistorias() {
-      historiasLista.innerHTML = "Cargando historias...";
-      const querySnapshot = await getDocs(collection(db,"historias"));
-      let historias = [];
-      querySnapshot.forEach(docSnap=>{
-        historias.push({id: docSnap.id, ...docSnap.data()});
-      });
-
+    // Renderizar publicaciones
+    function renderizarHistorias() {
+      historiasLista.innerHTML = "";
       const textoBusqueda = buscador.value.toLowerCase();
       const tipoSeleccionado = filtroTipo.value;
 
-      const historiasFiltradas = historias.filter(h=>{
-        const coincideTexto = h.historia.toLowerCase().includes(textoBusqueda) ||
-                              h.nombre.toLowerCase().includes(textoBusqueda);
-        const coincideTipo = tipoSeleccionado === "todos" || h.tipoViolencia === tipoSeleccionado;
+      const historiasFiltradas = historiasGuardadas.filter(historia => {
+        const coincideTexto = historia.historia.toLowerCase().includes(textoBusqueda) ||
+                              historia.nombre.toLowerCase().includes(textoBusqueda);
+        const coincideTipo = tipoSeleccionado === "todos" || historia.tipoViolencia === tipoSeleccionado;
         return coincideTexto && coincideTipo;
       });
 
-      historiasLista.innerHTML = "";
       if(historiasFiltradas.length === 0){
         historiasLista.innerHTML = "<p>No se encontraron resultados.</p>";
         return;
       }
 
-      historiasFiltradas.forEach(h=>{
-        if(!h.reacciones) h.reacciones = {"💙":[],"💪":[],"🌸":[]};
-        if(!h.respuestas) h.respuestas = [];
+      historiasFiltradas.forEach((historia,index)=>{
+        if(!historia.reacciones){
+          historia.reacciones = {"💙":{count:0,usuarios:[]},"💪":{count:0,usuarios:[]},"🌸":{count:0,usuarios:[]}};
+        }
+
+        // ✅ Conversión de fecha correcta
+        let fechaFormateada = "Fecha desconocida";
+        if (historia.fecha) {
+          if (historia.fecha.toDate) {
+            const fecha = historia.fecha.toDate();
+            fechaFormateada = fecha.toLocaleDateString("es-ES") + " " + fecha.toLocaleTimeString("es-ES");
+          } else if (typeof historia.fecha === "string") {
+            fechaFormateada = historia.fecha;
+          } else {
+            try {
+              const fecha = new Date(historia.fecha);
+              fechaFormateada = fecha.toLocaleDateString("es-ES") + " " + fecha.toLocaleTimeString("es-ES");
+            } catch(e) {}
+          }
+        }
 
         const historiaElement = document.createElement("div");
         historiaElement.classList.add("historia");
         historiaElement.innerHTML = `
           <div class="contenido-publicacion">
-            <h3>${h.nombre} <span class="fecha">(${h.fecha})</span></h3>
-            <p>${h.historia}</p>
-            <p><strong>Tipo de Violencia:</strong> ${h.tipoViolencia}</p>
+            <h3>${historia.nombre} <span class="fecha">(${fechaFormateada})</span></h3>
+            <p>${historia.historia}</p>
+            <p><strong>Tipo de Violencia:</strong> ${historia.tipoViolencia}</p>
           </div>
           <div class="reacciones">
-            <i class="icon-abrazo" data-emoji="💙" data-id="${h.id}">💙</i> <span>${h.reacciones["💙"].length}</span>
-            <i class="icon-fuerza" data-emoji="💪" data-id="${h.id}">💪</i> <span>${h.reacciones["💪"].length}</span>
-            <i class="icon-esperanza" data-emoji="🌸" data-id="${h.id}">🌸</i> <span>${h.reacciones["🌸"].length}</span>
+            <i class="icon-abrazo" data-emoji="💙" data-index="${index}">💙</i> <span id="count-💙-${index}">${historia.reacciones["💙"].count}</span>
+            <i class="icon-fuerza" data-emoji="💪" data-index="${index}">💪</i> <span id="count-💪-${index}">${historia.reacciones["💪"].count}</span>
+            <i class="icon-esperanza" data-emoji="🌸" data-index="${index}">🌸</i> <span id="count-🌸-${index}">${historia.reacciones["🌸"].count}</span>
           </div>
           <div class="respuestas">
             <h4>Respuestas:</h4>
-            <div class="respuestas-lista">
-              ${h.respuestas.map(r=>`<p><strong>${r.nombre}</strong>: ${r.texto}</p>`).join("")}
-            </div>
-            <textarea id="respuesta-text-${h.id}" placeholder="Escribe tu respuesta..."></textarea>
-            <button data-id="${h.id}" class="responder-btn">Responder</button>
+            <div class="respuestas-lista" id="respuestas-${index}"></div>
+            <textarea id="respuesta-text-${index}" placeholder="Escribe tu respuesta..."></textarea>
+            <button onclick="agregarRespuesta(${index})">Responder</button>
           </div>
           <hr>
         `;
         historiasLista.appendChild(historiaElement);
+
+        const respuestasGuardadas = JSON.parse(localStorage.getItem(`respuestas-${index}`)) || [];
+        const respuestasLista = document.getElementById(`respuestas-${index}`);
+        respuestasGuardadas.forEach(respuesta => {
+          const respuestaElement = document.createElement("div");
+          respuestaElement.classList.add("respuesta");
+          respuestaElement.innerHTML = `<p><strong>${respuesta.nombre}</strong>: ${respuesta.texto}</p>`;
+          respuestasLista.appendChild(respuestaElement);
+        });
+
+        historiasGuardadas[index] = historia;
       });
 
-      // Reacciones
+      localStorage.setItem("historias", JSON.stringify(historiasGuardadas));
+
       document.querySelectorAll(".icon-abrazo, .icon-fuerza, .icon-esperanza").forEach(icon=>{
-        icon.addEventListener("click", async ()=>{
-          const historiaId = icon.dataset.id;
+        icon.addEventListener("click", ()=>{
+          const index = icon.dataset.index;
           const emoji = icon.dataset.emoji;
-          const historiaRef = doc(db,"historias",historiaId);
-
-          // Ver si ya reaccionó antes con este emoji
-          const historia = historias.find(h=>h.id===historiaId);
-          let yaReacciono = historia.reacciones[emoji].includes(usuarioActual);
-
-          if(yaReacciono){
-            await updateDoc(historiaRef, {
-              [`reacciones.${emoji}`]: arrayRemove(usuarioActual)
-            });
-          } else {
-            await updateDoc(historiaRef, {
-              [`reacciones.${emoji}`]: arrayUnion(usuarioActual)
-            });
-          }
-
-          popSound.currentTime = 0;
-          popSound.play();
-          icon.classList.add("active");
-          setTimeout(()=>icon.classList.remove("active"),800);
-          renderizarHistorias();
+          reaccionar(index,emoji,icon);
         });
       });
+    }
 
-      // Respuestas
-      document.querySelectorAll(".responder-btn").forEach(btn=>{
-        btn.addEventListener("click", async ()=>{
-          const historiaId = btn.dataset.id;
-          const texto = document.getElementById(`respuesta-text-${historiaId}`).value;
-          if(texto.trim()!==""){
-            const historiaRef = doc(db,"historias",historiaId);
-            await updateDoc(historiaRef,{
-              respuestas: arrayUnion({nombre: usuarioActual, texto})
-            });
-            renderizarHistorias();
-          } else {
-            alert("Por favor, escribe una respuesta.");
-          }
-        });
-      });
+    function reaccionar(index, emoji, icon){
+      const historia = historiasGuardadas[index];
+      const usuario = usuarioActual;
+
+      let reaccionAnterior = Object.keys(historia.reacciones).find(key =>
+        historia.reacciones[key].usuarios.includes(usuario)
+      );
+
+      if(reaccionAnterior === emoji){
+        historia.reacciones[emoji].count--;
+        historia.reacciones[emoji].usuarios = historia.reacciones[emoji].usuarios.filter(u=>u!==usuario);
+      } else {
+        if(reaccionAnterior){
+          historia.reacciones[reaccionAnterior].count--;
+          historia.reacciones[reaccionAnterior].usuarios = historia.reacciones[reaccionAnterior].usuarios.filter(u=>u!==usuario);
+        }
+        historia.reacciones[emoji].count++;
+        historia.reacciones[emoji].usuarios.push(usuario);
+      }
+
+      for(let key in historia.reacciones){
+        document.getElementById(`count-${key}-${index}`).textContent = historia.reacciones[key].count;
+      }
+
+      if(reaccionAnterior !== emoji || reaccionAnterior===null){
+        popSound.currentTime = 0;
+        popSound.play();
+        icon.classList.add("active");
+        setTimeout(()=>icon.classList.remove("active"),800);
+
+        const bubble = document.createElement("span");
+        bubble.classList.add("emoji-float");
+        bubble.textContent = emoji;
+        document.body.appendChild(bubble);
+        const rect = icon.getBoundingClientRect();
+        bubble.style.left = rect.left + rect.width/2 + "px";
+        bubble.style.top = rect.top - 10 + "px";
+        setTimeout(()=>bubble.remove(),1000);
+      }
+
+      historiasGuardadas[index] = historia;
+      localStorage.setItem("historias", JSON.stringify(historiasGuardadas));
+    }
+
+    function agregarRespuesta(index){
+      const respuestaTexto = document.getElementById(`respuesta-text-${index}`).value;
+      if(respuestaTexto.trim()!==""){
+        const nuevaRespuesta = {nombre: usuarioActual, texto: respuestaTexto};
+        let respuestasGuardadas = JSON.parse(localStorage.getItem(`respuestas-${index}`)) || [];
+        respuestasGuardadas.push(nuevaRespuesta);
+        localStorage.setItem(`respuestas-${index}`, JSON.stringify(respuestasGuardadas));
+        renderizarHistorias();
+      } else alert("Por favor, escribe una respuesta.");
     }
 
     buscador.addEventListener("input", renderizarHistorias);
