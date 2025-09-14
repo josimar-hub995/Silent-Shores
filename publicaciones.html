@@ -112,9 +112,9 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, getDoc, setDoc, arrayUnion, arrayRemove, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, getDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    // ⚡ Tu configuración de Firebase
+    // ⚡ Configuración de Firebase
     const firebaseConfig = {
       apiKey: "TU_API_KEY",
       authDomain: "silent-shores.firebaseapp.com",
@@ -182,7 +182,7 @@
             historia.reacciones = {"💙":{count:0,usuarios:[]},"💪":{count:0,usuarios:[]},"🌸":{count:0,usuarios:[]}};
           }
 
-          const index = id; // usamos id de Firestore
+          const index = id;
           const historiaElement = document.createElement("div");
           historiaElement.classList.add("historia");
           historiaElement.innerHTML = `
@@ -200,7 +200,7 @@
               <h4>Respuestas:</h4>
               <div class="respuestas-lista" id="respuestas-${index}"></div>
               <textarea id="respuesta-text-${index}" placeholder="Escribe tu respuesta..."></textarea>
-              <button onclick="agregarRespuesta('${index}')">Responder</button>
+              <button class="btn-responder" data-id="${index}">Responder</button>
             </div>
             <hr>
           `;
@@ -213,6 +213,12 @@
           historiaElement.querySelectorAll(".icon-abrazo, .icon-fuerza, .icon-esperanza").forEach(icon=>{
             icon.addEventListener("click", ()=> reaccionar(index, icon.dataset.emoji, icon));
           });
+
+          // Evento botón responder
+          const btnResponder = historiaElement.querySelector(".btn-responder");
+          if (btnResponder) {
+            btnResponder.addEventListener("click", ()=> agregarRespuesta(index));
+          }
         });
       });
     }
