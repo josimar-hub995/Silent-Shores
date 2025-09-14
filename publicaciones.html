@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Publicaciones - Silent Shores</title>
   <link rel="icon" href="imagenes/logo.jpg" type="image/jpeg">
-
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 
@@ -20,7 +19,6 @@
       padding: 4px 8px;
       border-radius: 8px;
     }
-
     .icon-abrazo, .icon-fuerza, .icon-esperanza {
       font-size: 1.6rem;
       cursor: pointer;
@@ -28,28 +26,24 @@
       display: inline-block;
       transition: transform 0.2s;
     }
-
     .icon-abrazo.active,
     .icon-fuerza.active,
     .icon-esperanza.active {
       animation: bounceShake 0.8s ease;
     }
-
     @keyframes bounceShake {
-      0%   { transform: translateY(0) rotate(0deg); }
-      30%  { transform: translateY(-20px) rotate(-10deg); }
-      50%  { transform: translateY(-20px) rotate(10deg); }
-      70%  { transform: translateY(-20px) rotate(-10deg); }
+      0% { transform: translateY(0) rotate(0deg); }
+      30% { transform: translateY(-20px) rotate(-10deg); }
+      50% { transform: translateY(-20px) rotate(10deg); }
+      70% { transform: translateY(-20px) rotate(-10deg); }
       100% { transform: translateY(0) rotate(0deg); }
     }
-
     .emoji-float {
       position: absolute;
       font-size: 1.8rem;
       pointer-events: none;
       animation: floatUp 1s ease forwards;
     }
-
     @keyframes floatUp {
       0% { opacity: 1; transform: translateY(0) scale(1); }
       50% { opacity: 0.9; transform: translateY(-40px) scale(1.2); }
@@ -110,13 +104,11 @@
     <p>© 2025 Silent Shores. Todos los derechos reservados.</p>
   </footer>
 
-  <!-- Firebase SDK -->
   <script type="module">
-    // Importar Firebase
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
-    import { getFirestore, collection, getDocs, addDoc, updateDoc, doc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, doc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
-    // Configuración de Firebase
+    // Configuración Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyBaFwwQTwrBtQ_BGf-Imp7FIY7dvkVo5Ho",
       authDomain: "silent-shores.firebaseapp.com",
@@ -126,7 +118,6 @@
       appId: "1:300326009498:web:b095642c0e7cfed7fcfd23"
     };
 
-    // Inicializar Firebase
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
@@ -152,18 +143,16 @@
       });
     }
 
-    // Variables
     const historiasLista = document.getElementById("historias-lista");
     const buscador = document.getElementById("buscador");
     const filtroTipo = document.getElementById("filtro-tipo");
     const popSound = new Audio("https://actions.google.com/sounds/v1/cartoon/pop.ogg");
 
     // Renderizar historias desde Firestore
-    async function renderizarHistorias(){
+    async function renderizarHistorias() {
       historiasLista.innerHTML = "Cargando historias...";
       const querySnapshot = await getDocs(collection(db,"historias"));
-
-      const historias = [];
+      let historias = [];
       querySnapshot.forEach(docSnap=>{
         historias.push({id: docSnap.id, ...docSnap.data()});
       });
@@ -171,65 +160,98 @@
       const textoBusqueda = buscador.value.toLowerCase();
       const tipoSeleccionado = filtroTipo.value;
 
-      const historiasFiltradas = historias.filter(historia=>{
-        const coincideTexto = historia.historia.toLowerCase().includes(textoBusqueda) ||
-                              historia.nombre.toLowerCase().includes(textoBusqueda);
-        const coincideTipo = tipoSeleccionado === "todos" || historia.tipoViolencia === tipoSeleccionado;
+      const historiasFiltradas = historias.filter(h=>{
+        const coincideTexto = h.historia.toLowerCase().includes(textoBusqueda) ||
+                              h.nombre.toLowerCase().includes(textoBusqueda);
+        const coincideTipo = tipoSeleccionado === "todos" || h.tipoViolencia === tipoSeleccionado;
         return coincideTexto && coincideTipo;
       });
 
       historiasLista.innerHTML = "";
-
       if(historiasFiltradas.length === 0){
         historiasLista.innerHTML = "<p>No se encontraron resultados.</p>";
         return;
       }
 
-      historiasFiltradas.forEach(historia=>{
-        if(!historia.reacciones){
-          historia.reacciones = {"💙":[],"💪":[],"🌸":[]};
-        }
+      historiasFiltradas.forEach(h=>{
+        if(!h.reacciones) h.reacciones = {"💙":[],"💪":[],"🌸":[]};
+        if(!h.respuestas) h.respuestas = [];
 
         const historiaElement = document.createElement("div");
         historiaElement.classList.add("historia");
         historiaElement.innerHTML = `
           <div class="contenido-publicacion">
-            <h3>${historia.nombre} <span class="fecha">(${historia.fecha})</span></h3>
-            <p>${historia.historia}</p>
-            <p><strong>Tipo de Violencia:</strong> ${historia.tipoViolencia}</p>
+            <h3>${h.nombre} <span class="fecha">(${h.fecha})</span></h3>
+            <p>${h.historia}</p>
+            <p><strong>Tipo de Violencia:</strong> ${h.tipoViolencia}</p>
           </div>
           <div class="reacciones">
-            <i class="icon-abrazo" data-emoji="💙" data-id="${historia.id}">💙</i> <span>${historia.reacciones["💙"].length}</span>
-            <i class="icon-fuerza" data-emoji="💪" data-id="${historia.id}">💪</i> <span>${historia.reacciones["💪"].length}</span>
-            <i class="icon-esperanza" data-emoji="🌸" data-id="${historia.id}">🌸</i> <span>${historia.reacciones["🌸"].length}</span>
+            <i class="icon-abrazo" data-emoji="💙" data-id="${h.id}">💙</i> <span>${h.reacciones["💙"].length}</span>
+            <i class="icon-fuerza" data-emoji="💪" data-id="${h.id}">💪</i> <span>${h.reacciones["💪"].length}</span>
+            <i class="icon-esperanza" data-emoji="🌸" data-id="${h.id}">🌸</i> <span>${h.reacciones["🌸"].length}</span>
           </div>
+          <div class="respuestas">
+            <h4>Respuestas:</h4>
+            <div class="respuestas-lista">
+              ${h.respuestas.map(r=>`<p><strong>${r.nombre}</strong>: ${r.texto}</p>`).join("")}
+            </div>
+            <textarea id="respuesta-text-${h.id}" placeholder="Escribe tu respuesta..."></textarea>
+            <button data-id="${h.id}" class="responder-btn">Responder</button>
+          </div>
+          <hr>
         `;
         historiasLista.appendChild(historiaElement);
       });
 
+      // Reacciones
       document.querySelectorAll(".icon-abrazo, .icon-fuerza, .icon-esperanza").forEach(icon=>{
         icon.addEventListener("click", async ()=>{
           const historiaId = icon.dataset.id;
           const emoji = icon.dataset.emoji;
-
           const historiaRef = doc(db,"historias",historiaId);
-          await updateDoc(historiaRef,{
-            [`reacciones.${emoji}`]: arrayUnion(usuarioActual)
-          });
+
+          // Ver si ya reaccionó antes con este emoji
+          const historia = historias.find(h=>h.id===historiaId);
+          let yaReacciono = historia.reacciones[emoji].includes(usuarioActual);
+
+          if(yaReacciono){
+            await updateDoc(historiaRef, {
+              [`reacciones.${emoji}`]: arrayRemove(usuarioActual)
+            });
+          } else {
+            await updateDoc(historiaRef, {
+              [`reacciones.${emoji}`]: arrayUnion(usuarioActual)
+            });
+          }
 
           popSound.currentTime = 0;
           popSound.play();
           icon.classList.add("active");
           setTimeout(()=>icon.classList.remove("active"),800);
-
           renderizarHistorias();
+        });
+      });
+
+      // Respuestas
+      document.querySelectorAll(".responder-btn").forEach(btn=>{
+        btn.addEventListener("click", async ()=>{
+          const historiaId = btn.dataset.id;
+          const texto = document.getElementById(`respuesta-text-${historiaId}`).value;
+          if(texto.trim()!==""){
+            const historiaRef = doc(db,"historias",historiaId);
+            await updateDoc(historiaRef,{
+              respuestas: arrayUnion({nombre: usuarioActual, texto})
+            });
+            renderizarHistorias();
+          } else {
+            alert("Por favor, escribe una respuesta.");
+          }
         });
       });
     }
 
     buscador.addEventListener("input", renderizarHistorias);
     filtroTipo.addEventListener("change", renderizarHistorias);
-
     renderizarHistorias();
   </script>
 </body>
