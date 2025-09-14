@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Compartir Historias - Silent Shores</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="imagenes/logo.jpg" type="image/jpeg">
+
+<style>
+    #usuario-actual {
+        position: absolute;
+        top: 10px;
+        right: 20px;
+        font-weight: bold;
+        font-size: 1rem;
+        background: #f0f0f0;
+        padding: 4px 8px;
+        border-radius: 8px;
+    }
+</style>
+</head>
+<body>
+<header style="position: relative;">
+    <div class="logo">
+        <img src="imagenes/logo.jpg" alt="Silent Shores Logo" class="logo-img">
+        Silent Shores
+    </div>
+    <nav>
+        <ul>
+            <li><a href="index.html">Inicio</a></li>
+            <li><a href="sobre-nosotros.html">Sobre Nosotros</a></li>
+            <li><a href="compartir-historias.html">Compartir Historias</a></li>
+            <li><a href="publicaciones.html">Publicaciones</a></li>
+            <li><a href="contacto.html">Contacto</a></li>
+        </ul>
+    </nav>
+    <button id="modo-toggle" class="modo-toggle">🌙 Modo Oscuro</button>
+    <div id="usuario-actual"></div>
+</header>
+
+<main>
+<section id="compartir-historias">
+<h1>Comparte tu Historia</h1>
+<p>Bienvenido al espacio donde puedes compartir tu experiencia y encontrar apoyo.</p>
+
+<form id="historia-form">
+    <label for="tipo-violencia">Selecciona el tipo de violencia:</label><br>
+    <select id="tipo-violencia" name="tipo-violencia">
+        <option value="Selecciona el tipo de violencia">Selecciona el tipo de violencia</option>
+        <option value="Bullying">Bullying</option>
+        <option value="Violencia Familiar">Violencia Familiar</option>
+        <option value="Abuso Emocional">Abuso Emocional</option>
+        <option value="Maltrato Físico">Maltrato Físico</option>
+        <option value="Aislamiento Social">Aislamiento Social</option>
+        <option value="Estrés y Ansiedad">Estrés y Ansiedad</option>
+        <option value="Adicciones">Adicciones</option>
+        <option value="Tristeza y Depresión">Tristeza y Depresión</option>
+    </select><br>
+
+    <label for="anonimo">¿Deseas enviar tu historia de forma anónima?</label><br>
+    <input type="radio" id="anonimo" name="opcion" value="anonimo" checked>
+    <label for="anonimo">Anónimo</label><br>
+    <input type="radio" id="usuario" name="opcion" value="usuario">
+    <label for="usuario">Con Usuario</label><br><br>
+
+    <div id="usuario-container" style="display: none;">
+        <label for="nombre-usuario">Nombre de Usuario:</label><br>
+        <input type="text" id="nombre-usuario" name="nombre-usuario" placeholder="Introduce tu nombre de usuario"><br><br>
+    </div>
+
+    <textarea name="historia" id="historia" rows="10" placeholder="Escribe tu historia aquí..."></textarea><br><br>
+    <button type="button" id="vista-previa-btn">Vista Previa</button>
+</form>
+
+<div id="vista-previa" style="display: none;">
+    <h3>Vista Previa de la Historia</h3>
+    <p><strong>Publicar como:</strong> <span id="publicar-como"></span></p>
+    <p><strong>Tipo de violencia:</strong> <span id="tipo-violencia-preview"></span></p>
+    <div id="historia-preview"></div>
+    <button id="publicar-btn">Publicar Historia</button>
+</div>
+</section>
+</main>
+
+<footer>
+<div class="contacto-info">
+    <p>Email: <a href="mailto:jessica@silentshores.com">jessica@silentshores.com</a></p>
+    <p>Teléfono: <a href="tel:+51965775967">+51 965775967</a></p>
+</div>
+<div class="social-media">
+    <p>Síguenos en:</p>
+    <a href="#">Facebook</a>
+    <a href="#">Twitter</a>
+    <a href="#">Instagram</a>
+</div>
+<p>© 2025 Silent Shores. Todos los derechos reservados.</p>
+</footer>
+
+<script>
+    // Modo oscuro/claro
+    const toggleBtn = document.getElementById("modo-toggle");
+    const body = document.body;
+    toggleBtn.addEventListener("click", () => {
+        body.classList.toggle("dark-mode");
+        toggleBtn.textContent = body.classList.contains("dark-mode") ? "☀️ Modo Claro" : "🌙 Modo Oscuro";
+    });
+
+    // Sesión de usuario global
+    let usuarioActual = localStorage.getItem("usuarioActual");
+    const usuarioDiv = document.getElementById("usuario-actual");
+
+    if(!usuarioActual){
+        usuarioDiv.innerHTML = `Usuario: Anónimo <button id="login-btn">Login</button>`;
+        document.getElementById("login-btn").addEventListener("click", ()=>{
+            const nombre = prompt("Ingresa tu nombre de usuario:");
+            if(nombre && nombre.trim()!==""){
+                localStorage.setItem("usuarioActual", nombre.trim());
+                location.reload();
+            }
+        });
+        usuarioActual = "Anónimo";
+    } else {
+        usuarioDiv.innerHTML = `Usuario: ${usuarioActual} <button id="logout-btn">Logout</button>`;
+        document.getElementById("logout-btn").addEventListener("click", ()=>{
+            localStorage.removeItem("usuarioActual");
+            location.reload();
+        });
+    }
+
+    // Mostrar/ocultar campo nombre de usuario según opción
+    const radioAnonimo = document.getElementById("anonimo");
+    const radioUsuario = document.getElementById("usuario");
+    const usuarioContainer = document.getElementById("usuario-container");
+    const nombreUsuarioInput = document.getElementById("nombre-usuario");
+
+    radioAnonimo.addEventListener("change", ()=>{ 
+        if(radioAnonimo.checked) usuarioContainer.style.display="none"; 
+    });
+
+    radioUsuario.addEventListener("change", ()=>{ 
+        if(radioUsuario.checked){
+            usuarioContainer.style.display="block"; 
+            // Si hay usuario logueado, autocompletar input
+            if(usuarioActual !== "Anónimo"){
+                nombreUsuarioInput.value = usuarioActual;
+            }
+        }
+    });
+
+    // Vista previa
+    const vistaPreviaBtn = document.getElementById("vista-previa-btn");
+    const historiaTextarea = document.getElementById("historia");
+    const vistaPreviaDiv = document.getElementById("vista-previa");
+    const publicarComo = document.getElementById("publicar-como");
+    const historiaPreview = document.getElementById("historia-preview");
+    const tipoViolenciaPreview = document.getElementById("tipo-violencia-preview");
+
+    vistaPreviaBtn.addEventListener("click", ()=>{
+        const opcion = document.querySelector('input[name="opcion"]:checked').value;
+        const nombreUsuario = nombreUsuarioInput.value || usuarioActual;
+        const tipoViolencia = document.getElementById("tipo-violencia").value;
+        const nombreParaPublicar = opcion==="anonimo" ? "Anónimo" : `Usuario: ${nombreUsuario}`;
+        publicarComo.textContent = nombreParaPublicar;
+        historiaPreview.textContent = historiaTextarea.value;
+        tipoViolenciaPreview.textContent = tipoViolencia;
+        vistaPreviaDiv.style.display="block";
+    });
+
+    // Publicar historia
+    const publicarBtn = document.getElementById("publicar-btn");
+    publicarBtn.addEventListener("click", ()=>{
+        const historia = historiaTextarea.value;
+        const opcion = document.querySelector('input[name="opcion"]:checked').value;
+        const nombreUsuario = nombreUsuarioInput.value || usuarioActual;
+        const tipoViolencia = document.getElementById("tipo-violencia").value;
+        const nombreParaPublicar = opcion==="anonimo" ? "Anónimo" : `Usuario: ${nombreUsuario}`;
+
+        const nuevaHistoria = {
+            nombre: nombreParaPublicar,
+            historia: historia,
+            tipoViolencia: tipoViolencia,
+            fecha: new Date().toLocaleString()
+        };
+
+        let historiasGuardadas = JSON.parse(localStorage.getItem("historias")) || [];
+        historiasGuardadas.push(nuevaHistoria);
+        localStorage.setItem("historias", JSON.stringify(historiasGuardadas));
+
+        alert("¡Tu historia ha sido publicada!");
+        historiaTextarea.value="";
+        radioAnonimo.checked=true;
+        usuarioContainer.style.display="none";
+        vistaPreviaDiv.style.display="none";
+    });
+</script>
+</body>
+</html>

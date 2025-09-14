@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Silent Shores - Un Espacio Seguro</title>
+<link rel="icon" href="imagenes/logo.jpg" type="image/jpeg">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+
+<style>
+    /* Contenedor del usuario arriba a la derecha */
+    #usuario-info {
+        position: absolute;
+        top: 15px;
+        right: 20px;
+        font-weight: bold;
+    }
+
+    #usuario-info button {
+        margin-left: 10px;
+        cursor: pointer;
+    }
+
+    /* Modal login */
+    #login-modal {
+        display: none;
+        position: fixed;
+        z-index: 999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.5);
+    }
+
+    #login-modal-content {
+        background-color: #fff;
+        margin: 10% auto;
+        padding: 20px;
+        border-radius: 10px;
+        width: 90%;
+        max-width: 400px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        text-align: center;
+    }
+
+    #login-modal input {
+        width: 80%;
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        font-size: 1rem;
+    }
+
+    #login-modal button {
+        padding: 10px 20px;
+        border: none;
+        background-color: #007bff;
+        color: white;
+        font-size: 1rem;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    #login-modal button:hover {
+        background-color: #0056b3;
+    }
+</style>
+</head>
+<body>
+<header style="position: relative;">
+    <div class="logo">
+        <img src="imagenes/logo.jpg" alt="Silent Shores Logo" class="logo-img">
+        Silent Shores
+    </div>
+    <nav>
+        <ul>
+            <li><a href="index.html">Inicio</a></li>
+            <li><a href="sobre-nosotros.html">Sobre Nosotros</a></li>
+            <li><a href="compartir-historias.html">Compartir Historias</a></li>
+            <li><a href="publicaciones.html">Publicaciones</a></li>
+            <li><a href="contacto.html">Contacto</a></li>
+        </ul>
+    </nav>
+    <button id="modo-toggle" class="modo-toggle">🌙 Modo Oscuro</button>
+    <div id="usuario-info"></div>
+</header>
+
+<main>
+    <section id="inicio">
+        <h1>Bienvenido a Silent Shores: Tu Refugio de Esperanza y Apoyo</h1>
+        <p>Silent Shores es una plataforma digital diseñada para proporcionar un refugio seguro y anónimo donde las personas pueden compartir sus historias y experiencias de maltrato, violencia y bullying. Aquí, cada voz cuenta, y cada experiencia importa.</p>
+        <a href="https://chat.whatsapp.com/GsnckufxLfZ1btyPKGGFia?mode=ems_copy_c" class="cta-button" target="_blank" rel="noopener noreferrer">Únete a nuestra comunidad</a>
+    </section>
+</main>
+
+<footer>
+    <div class="contacto-info">
+        <p>Email: <a href="mailto:jessica@silentshores.com">jessica@silentshores.com</a></p>
+        <p>Teléfono: <a href="tel:+51965775967">+51 965775967</a></p>
+    </div>
+    <div class="social-media">
+        <p>Síguenos en:</p>
+        <a href="#">Facebook</a>
+        <a href="#">Twitter</a>
+        <a href="#">Instagram</a>
+    </div>
+    <p>© 2025 Silent Shores. Todos los derechos reservados.</p>
+</footer>
+
+<!-- Modal de login -->
+<div id="login-modal">
+    <div id="login-modal-content">
+        <h2>Iniciar Sesión</h2>
+        <input type="text" id="login-username" placeholder="Ingresa tu usuario">
+        <br>
+        <button id="login-submit">Entrar</button>
+        <br><br>
+        <button id="login-cancel">Cancelar</button>
+    </div>
+</div>
+
+<script>
+    // Modo claro/oscuro
+    const toggleBtn = document.getElementById("modo-toggle");
+    const body = document.body;
+    toggleBtn.addEventListener("click", () => {
+        body.classList.toggle("dark-mode");
+        toggleBtn.textContent = body.classList.contains("dark-mode")
+            ? "☀️ Modo Claro"
+            : "🌙 Modo Oscuro";
+    });
+
+    const usuarioInfo = document.getElementById("usuario-info");
+    const loginModal = document.getElementById("login-modal");
+    const loginUsername = document.getElementById("login-username");
+    const loginSubmit = document.getElementById("login-submit");
+    const loginCancel = document.getElementById("login-cancel");
+
+    function actualizarUsuario() {
+        const usuario = localStorage.getItem("usuarioActual");
+        if (usuario) {
+            usuarioInfo.innerHTML = `Usuario: ${usuario} <button id="logout-btn">Logout</button>`;
+            document.getElementById("logout-btn").addEventListener("click", () => {
+                localStorage.removeItem("usuarioActual");
+                actualizarUsuario();
+            });
+        } else {
+            usuarioInfo.innerHTML = `Usuario: Anónimo <button id="login-btn">Login</button>`;
+            document.getElementById("login-btn").addEventListener("click", () => {
+                loginModal.style.display = "block";
+                loginUsername.focus();
+            });
+        }
+    }
+
+    loginSubmit.addEventListener("click", () => {
+        const nombre = loginUsername.value.trim();
+        if(nombre) {
+            localStorage.setItem("usuarioActual", nombre);
+            loginUsername.value = "";
+            loginModal.style.display = "none";
+            actualizarUsuario();
+        }
+    });
+
+    loginCancel.addEventListener("click", () => {
+        loginUsername.value = "";
+        loginModal.style.display = "none";
+    });
+
+    // Cerrar modal al hacer clic fuera del contenido
+    window.addEventListener("click", (e) => {
+        if (e.target === loginModal) loginModal.style.display = "none";
+    });
+
+    document.addEventListener("DOMContentLoaded", actualizarUsuario);
+</script>
+</body>
+</html>

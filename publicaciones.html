@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Publicaciones - Silent Shores</title>
+  <link rel="icon" href="imagenes/logo.jpg" type="image/jpeg">
+
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+
+  <style>
+    #usuario-actual {
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      font-weight: bold;
+      font-size: 1rem;
+      background: #f0f0f0;
+      padding: 4px 8px;
+      border-radius: 8px;
+    }
+
+    .icon-abrazo, .icon-fuerza, .icon-esperanza {
+      font-size: 1.6rem;
+      cursor: pointer;
+      margin: 0 6px;
+      display: inline-block;
+      transition: transform 0.2s;
+    }
+
+    .icon-abrazo.active,
+    .icon-fuerza.active,
+    .icon-esperanza.active {
+      animation: bounceShake 0.8s ease;
+    }
+
+    @keyframes bounceShake {
+      0%   { transform: translateY(0) rotate(0deg); }
+      30%  { transform: translateY(-20px) rotate(-10deg); }
+      50%  { transform: translateY(-20px) rotate(10deg); }
+      70%  { transform: translateY(-20px) rotate(-10deg); }
+      100% { transform: translateY(0) rotate(0deg); }
+    }
+
+    .emoji-float {
+      position: absolute;
+      font-size: 1.8rem;
+      pointer-events: none;
+      animation: floatUp 1s ease forwards;
+    }
+
+    @keyframes floatUp {
+      0% { opacity: 1; transform: translateY(0) scale(1); }
+      50% { opacity: 0.9; transform: translateY(-40px) scale(1.2); }
+      100% { opacity: 0; transform: translateY(-80px) scale(0.8); }
+    }
+  </style>
+</head>
+<body>
+  <header style="position: relative;">
+    <div class="logo">
+      <img src="imagenes/logo.jpg" alt="Silent Shores Logo" class="logo-img">
+      Silent Shores
+    </div>
+    <nav>
+      <ul>
+        <li><a href="index.html">Inicio</a></li>
+        <li><a href="sobre-nosotros.html">Sobre Nosotros</a></li>
+        <li><a href="compartir-historias.html">Compartir Historias</a></li>
+        <li><a href="publicaciones.html">Publicaciones</a></li>
+        <li><a href="contacto.html">Contacto</a></li>
+      </ul>
+    </nav>
+    <div id="usuario-actual"></div>
+  </header>
+
+  <main>
+    <section id="publicaciones">
+      <h1>Publicaciones de Historias</h1>
+
+      <input type="text" id="buscador" placeholder="Buscar por palabra clave...">
+      <select id="filtro-tipo">
+        <option value="todos">Todos los tipos</option>
+        <option value="Bullying">Bullying</option>
+        <option value="Violencia Familiar">Violencia Familiar</option>
+        <option value="Abuso Emocional">Abuso Emocional</option>
+        <option value="Maltrato Físico">Maltrato Físico</option>
+        <option value="Aislamiento Social">Aislamiento Social</option>
+        <option value="Estrés y Ansiedad">Estrés y Ansiedad</option>
+        <option value="Adicciones">Adicciones</option>
+        <option value="Tristeza y Depresión">Tristeza y Depresión</option>
+      </select>
+
+      <div id="historias-lista"></div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="contacto-info">
+      <p>Email: <a href="mailto:jessica@silentshores.com">jessica@silentshores.com</a></p>
+      <p>Teléfono: <a href="tel:+51965775967">+51 965775967</a></p>
+    </div>
+    <div class="social-media">
+      <p>Síguenos en:</p>
+      <a href="#">Facebook</a>
+      <a href="#">Twitter</a>
+      <a href="#">Instagram</a>
+    </div>
+    <p>© 2025 Silent Shores. Todos los derechos reservados.</p>
+  </footer>
+
+  <script>
+    // Sesión de usuario global
+    let usuarioActual = localStorage.getItem("usuarioActual");
+
+    const usuarioDiv = document.getElementById("usuario-actual");
+    if(!usuarioActual){
+      usuarioDiv.innerHTML = `Usuario: Anónimo <button id="login-btn">Login</button>`;
+      document.getElementById("login-btn").addEventListener("click", ()=>{
+        const nombre = prompt("Ingresa tu nombre de usuario:");
+        if(nombre && nombre.trim() !== ""){
+          localStorage.setItem("usuarioActual", nombre.trim());
+          location.reload();
+        }
+      });
+      usuarioActual = "Anónimo";
+    } else {
+      usuarioDiv.innerHTML = `Usuario: ${usuarioActual} <button id="logout-btn">Logout</button>`;
+      document.getElementById("logout-btn").addEventListener("click", ()=>{
+        localStorage.removeItem("usuarioActual");
+        location.reload();
+      });
+    }
+
+    // Variables
+    const historiasLista = document.getElementById("historias-lista");
+    const buscador = document.getElementById("buscador");
+    const filtroTipo = document.getElementById("filtro-tipo");
+
+    let historiasGuardadas = JSON.parse(localStorage.getItem("historias")) || [];
+    const popSound = new Audio("https://actions.google.com/sounds/v1/cartoon/pop.ogg");
+
+    // Renderizar publicaciones
+    function renderizarHistorias() {
+      historiasLista.innerHTML = "";
+      const textoBusqueda = buscador.value.toLowerCase();
+      const tipoSeleccionado = filtroTipo.value;
+
+      const historiasFiltradas = historiasGuardadas.filter(historia => {
+        const coincideTexto = historia.historia.toLowerCase().includes(textoBusqueda) ||
+                              historia.nombre.toLowerCase().includes(textoBusqueda);
+        const coincideTipo = tipoSeleccionado === "todos" || historia.tipoViolencia === tipoSeleccionado;
+        return coincideTexto && coincideTipo;
+      });
+
+      if(historiasFiltradas.length === 0){
+        historiasLista.innerHTML = "<p>No se encontraron resultados.</p>";
+        return;
+      }
+
+      historiasFiltradas.forEach((historia,index)=>{
+        if(!historia.reacciones){
+          historia.reacciones = {"💙":{count:0,usuarios:[]},"💪":{count:0,usuarios:[]},"🌸":{count:0,usuarios:[]}};
+        }
+
+        const historiaElement = document.createElement("div");
+        historiaElement.classList.add("historia");
+        historiaElement.innerHTML = `
+          <div class="contenido-publicacion">
+            <h3>${historia.nombre} <span class="fecha">(${historia.fecha})</span></h3>
+            <p>${historia.historia}</p>
+            <p><strong>Tipo de Violencia:</strong> ${historia.tipoViolencia}</p>
+          </div>
+          <div class="reacciones">
+            <i class="icon-abrazo" data-emoji="💙" data-index="${index}">💙</i> <span id="count-💙-${index}">${historia.reacciones["💙"].count}</span>
+            <i class="icon-fuerza" data-emoji="💪" data-index="${index}">💪</i> <span id="count-💪-${index}">${historia.reacciones["💪"].count}</span>
+            <i class="icon-esperanza" data-emoji="🌸" data-index="${index}">🌸</i> <span id="count-🌸-${index}">${historia.reacciones["🌸"].count}</span>
+          </div>
+          <div class="respuestas">
+            <h4>Respuestas:</h4>
+            <div class="respuestas-lista" id="respuestas-${index}"></div>
+            <textarea id="respuesta-text-${index}" placeholder="Escribe tu respuesta..."></textarea>
+            <button onclick="agregarRespuesta(${index})">Responder</button>
+          </div>
+          <hr>
+        `;
+        historiasLista.appendChild(historiaElement);
+
+        const respuestasGuardadas = JSON.parse(localStorage.getItem(`respuestas-${index}`)) || [];
+        const respuestasLista = document.getElementById(`respuestas-${index}`);
+        respuestasGuardadas.forEach(respuesta => {
+          const respuestaElement = document.createElement("div");
+          respuestaElement.classList.add("respuesta");
+          respuestaElement.innerHTML = `<p><strong>${respuesta.nombre}</strong>: ${respuesta.texto}</p>`;
+          respuestasLista.appendChild(respuestaElement);
+        });
+
+        historiasGuardadas[index] = historia;
+      });
+
+      localStorage.setItem("historias", JSON.stringify(historiasGuardadas));
+
+      // Eventos de reacciones
+      document.querySelectorAll(".icon-abrazo, .icon-fuerza, .icon-esperanza").forEach(icon=>{
+        icon.addEventListener("click", ()=>{
+          const index = icon.dataset.index;
+          const emoji = icon.dataset.emoji;
+          reaccionar(index,emoji,icon);
+        });
+      });
+    }
+
+    function reaccionar(index, emoji, icon){
+      const historia = historiasGuardadas[index];
+      const usuario = usuarioActual;
+
+      let reaccionAnterior = Object.keys(historia.reacciones).find(key =>
+        historia.reacciones[key].usuarios.includes(usuario)
+      );
+
+      if(reaccionAnterior === emoji){
+        historia.reacciones[emoji].count--;
+        historia.reacciones[emoji].usuarios = historia.reacciones[emoji].usuarios.filter(u=>u!==usuario);
+      } else {
+        if(reaccionAnterior){
+          historia.reacciones[reaccionAnterior].count--;
+          historia.reacciones[reaccionAnterior].usuarios = historia.reacciones[reaccionAnterior].usuarios.filter(u=>u!==usuario);
+        }
+        historia.reacciones[emoji].count++;
+        historia.reacciones[emoji].usuarios.push(usuario);
+      }
+
+      for(let key in historia.reacciones){
+        document.getElementById(`count-${key}-${index}`).textContent = historia.reacciones[key].count;
+      }
+
+      if(reaccionAnterior !== emoji || reaccionAnterior===null){
+        popSound.currentTime = 0;
+        popSound.play();
+        icon.classList.add("active");
+        setTimeout(()=>icon.classList.remove("active"),800);
+
+        const bubble = document.createElement("span");
+        bubble.classList.add("emoji-float");
+        bubble.textContent = emoji;
+        document.body.appendChild(bubble);
+        const rect = icon.getBoundingClientRect();
+        bubble.style.left = rect.left + rect.width/2 + "px";
+        bubble.style.top = rect.top - 10 + "px";
+        setTimeout(()=>bubble.remove(),1000);
+      }
+
+      historiasGuardadas[index] = historia;
+      localStorage.setItem("historias", JSON.stringify(historiasGuardadas));
+    }
+
+    function agregarRespuesta(index){
+      const respuestaTexto = document.getElementById(`respuesta-text-${index}`).value;
+      if(respuestaTexto.trim()!==""){
+        const nuevaRespuesta = {nombre: usuarioActual, texto: respuestaTexto};
+        let respuestasGuardadas = JSON.parse(localStorage.getItem(`respuestas-${index}`)) || [];
+        respuestasGuardadas.push(nuevaRespuesta);
+        localStorage.setItem(`respuestas-${index}`, JSON.stringify(respuestasGuardadas));
+        renderizarHistorias();
+      } else alert("Por favor, escribe una respuesta.");
+    }
+
+    buscador.addEventListener("input", renderizarHistorias);
+    filtroTipo.addEventListener("change", renderizarHistorias);
+    renderizarHistorias();
+  </script>
+</body>
+</html>

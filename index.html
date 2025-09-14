@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Silent Shores - Un Espacio Seguro</title>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="imagenes/logo.jpg" type="image/jpeg">
+
+    <!-- Estilos -->
+    <link rel="stylesheet" href="styles.css">
+
+    <style>
+        /* Contenedor del usuario arriba a la derecha */
+        #usuario-info {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-weight: bold;
+        }
+
+        #usuario-info button {
+            margin-left: 10px;
+            cursor: pointer;
+        }
+
+        /* Modal de login */
+        #login-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.6);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        #login-modal.show {
+            display: block;
+            opacity: 1;
+        }
+
+        #login-modal-content {
+            background-color: #fff;
+            margin: 10% auto;
+            padding: 25px 20px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            font-family: 'Playfair Display', serif;
+            transform: translateY(-50px);
+            transition: transform 0.3s ease;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        #login-modal.show #login-modal-content {
+            transform: translateY(0);
+        }
+
+        #login-modal-content h2 {
+            margin-bottom: 15px;
+        }
+
+        #login-modal-content input {
+            width: 80%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        #login-modal-content button {
+            padding: 8px 18px;
+            margin: 5px;
+            cursor: pointer;
+            border-radius: 8px;
+            border: none;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: background-color 0.2s ease;
+        }
+
+        #login-submit {
+            background-color: #007BFF;
+            color: #fff;
+        }
+
+        #login-submit:hover {
+            background-color: #0056b3;
+        }
+
+        #login-cancel {
+            background-color: #ccc;
+        }
+
+        #login-cancel:hover {
+            background-color: #999;
+        }
+    </style>
+</head>
+<body>
+    <header style="position: relative;">
+        <div class="logo">
+            <img src="imagenes/logo.jpg" alt="Silent Shores Logo" class="logo-img">
+            Silent Shores
+        </div>
+        <nav>
+            <ul>
+                <li><a href="index.html">Inicio</a></li>
+                <li><a href="sobre-nosotros.html">Sobre Nosotros</a></li>
+                <li><a href="compartir-historias.html">Compartir Historias</a></li>
+                <li><a href="publicaciones.html">Publicaciones</a></li>
+                <li><a href="contacto.html">Contacto</a></li>
+            </ul>
+        </nav>
+        <button id="modo-toggle" class="modo-toggle">🌙 Modo Oscuro</button>
+        <div id="usuario-info"></div>
+    </header>
+
+    <!-- Modal de login -->
+    <div id="login-modal">
+        <div id="login-modal-content">
+            <h2>Login</h2>
+            <input type="text" id="login-username" placeholder="Ingresa tu usuario">
+            <div>
+                <button id="login-submit">Ingresar</button>
+                <button id="login-cancel">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <main>
+        <section id="inicio">
+            <h1>Bienvenido a Silent Shores: Tu Refugio de Esperanza y Apoyo</h1>
+            <p>Silent Shores es una plataforma digital diseñada para proporcionar un refugio seguro y anónimo donde las personas pueden compartir sus historias y experiencias de maltrato, violencia y bullying. Aquí, cada voz cuenta, y cada experiencia importa.</p>
+            <a href="https://chat.whatsapp.com/GsnckufxLfZ1btyPKGGFia?mode=ems_copy_c" class="cta-button" target="_blank" rel="noopener noreferrer">Únete a nuestra comunidad</a>
+        </section>
+
+        <h2>Temas de Conversación</h2>
+        <section id="temas">
+            <div class="tema"><h3>Bullying</h3><p>Comparte y habla sobre experiencias de acoso escolar o cibernético.</p></div>
+            <div class="tema"><h3>Violencia Familiar</h3><p>Un espacio para discutir experiencias de violencia en el hogar y buscar apoyo.</p></div>
+            <div class="tema"><h3>Abuso Emocional</h3><p>Reflexiona sobre el impacto del abuso emocional y cómo superarlo.</p></div>
+            <div class="tema"><h3>Maltrato Físico</h3><p>Comparte experiencias de maltrato físico y recibe orientación.</p></div>
+            <div class="tema"><h3>Aislamiento Social</h3><p>Habla sobre el sentir de soledad y aislamiento, y encuentra conexión con otros.</p></div>
+            <div class="tema"><h3>Estrés y Ansiedad</h3><p>Un lugar para discutir la ansiedad cotidiana y cómo afrontar el estrés.</p></div>
+            <div class="tema"><h3>Tristeza y Depresión</h3><p>Comparte tus luchas contra la tristeza persistente y busca apoyo.</p></div>
+            <div class="tema"><h3>Adicciones</h3><p>Aborda el impacto de las adicciones y encuentra recursos para superarlas.</p></div>
+        </section>
+
+        <section id="publicaciones">
+            <h2>Ejemplo de Publicación</h2>
+            <article class="experiencia-acoso">
+                <h3>La experiencia de ser acosada en la escuela</h3>
+                <p>Quiero compartir cómo me siento desde que empecé a recibir mensajes crueles de mis compañeros. Esto ha afectado mi autoestima y me hace dudar de mí misma. ¿Alguien más ha pasado por esto? ¿Cómo logran lidiar con el bullying?</p>
+            </article>
+        </section>
+
+        <section id="recursos">
+            <h2>Recursos</h2>
+            <p>Accede a recursos sobre cómo manejar situaciones de maltrato emocional, físico y psicológico.</p>
+        </section>
+    </main>
+
+    <footer>
+        <div class="contacto-info">
+            <p>Email: <a href="mailto:jessica@silentshores.com">jessica@silentshores.com</a></p>
+            <p>Teléfono: <a href="tel:+51965775967">+51 965775967</a></p>
+        </div>
+        <div class="social-media">
+            <p>Síguenos en:</p>
+            <a href="#">Facebook</a>
+            <a href="#">Twitter</a>
+            <a href="#">Instagram</a>
+        </div>
+        <p>© 2025 Silent Shores. Todos los derechos reservados.</p>
+    </footer>
+
+    <script>
+        // Modo claro/oscuro
+        const toggleBtn = document.getElementById("modo-toggle");
+        const body = document.body;
+        toggleBtn.addEventListener("click", () => {
+            body.classList.toggle("dark-mode");
+            toggleBtn.textContent = body.classList.contains("dark-mode")
+                ? "☀️ Modo Claro"
+                : "🌙 Modo Oscuro";
+        });
+
+        // Funcionalidad de usuario global con modal
+        const usuarioInfo = document.getElementById("usuario-info");
+        const loginModal = document.getElementById("login-modal");
+        const loginUsername = document.getElementById("login-username");
+        const loginSubmit = document.getElementById("login-submit");
+        const loginCancel = document.getElementById("login-cancel");
+
+        function actualizarUsuario() {
+            const usuario = localStorage.getItem("usuarioActual");
+            if (usuario) {
+                usuarioInfo.innerHTML = `Usuario: ${usuario} <button id="logout-btn">Logout</button>`;
+                document.getElementById("logout-btn").addEventListener("click", () => {
+                    localStorage.removeItem("usuarioActual");
+                    actualizarUsuario();
+                });
+            } else {
+                usuarioInfo.innerHTML = `Usuario: Anónimo <button id="login-btn">Login</button>`;
+                document.getElementById("login-btn").addEventListener("click", () => {
+                    loginUsername.value = "";
+                    loginModal.classList.add("show");
+                });
+            }
+        }
+
+        // Botones del modal
+        loginSubmit.addEventListener("click", () => {
+            const nombre = loginUsername.value.trim();
+            if(nombre !== "") {
+                localStorage.setItem("usuarioActual", nombre);
+                loginModal.classList.remove("show");
+                actualizarUsuario();
+            }
+        });
+
+        loginCancel.addEventListener("click", () => {
+            loginModal.classList.remove("show");
+        });
+
+        // Cerrar modal al hacer clic fuera
+        window.addEventListener("click", (e) => {
+            if(e.target === loginModal) {
+                loginModal.classList.remove("show");
+            }
+        });
+
+        // Inicializar usuario al cargar la página
+        document.addEventListener("DOMContentLoaded", actualizarUsuario);
+    </script>
+</body>
+</html>

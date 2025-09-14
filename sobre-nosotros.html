@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link rel="icon" href="imagenes/logo.jpg" type="image/jpeg">
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sobre Nosotros - Silent Shores</title>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <!-- Estilos -->
+    <link rel="stylesheet" href="styles.css">
+
+    <style>
+        /* Contenedor del usuario arriba a la derecha */
+        #usuario-info {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-weight: bold;
+        }
+
+        #usuario-info button {
+            margin-left: 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <header style="position: relative;">
+        <div class="logo">
+            <img src="imagenes/logo.jpg" alt="Silent Shores Logo" class="logo-img">
+            Silent Shores
+        </div>
+        <nav>
+            <ul>
+                <li><a href="index.html">Inicio</a></li>
+                <li><a href="sobre-nosotros.html">Sobre Nosotros</a></li>
+                <li><a href="compartir-historias.html">Compartir Historias</a></li>
+                <li><a href="publicaciones.html">Publicaciones</a></li>
+                <li><a href="contacto.html">Contacto</a></li>
+            </ul>
+        </nav>
+        <button id="modo-toggle" class="modo-toggle">🌙 Modo Oscuro</button>
+        <div id="usuario-info"></div>
+    </header>
+
+    <main>
+        <section id="sobre-nosotros">
+            <h1>Sobre Silent Shores</h1>
+            <p><strong>Silent Shores</strong> es una plataforma digital que proporciona un refugio seguro y anónimo para aquellas personas que han sufrido maltrato, violencia o bullying. Nuestro objetivo es ofrecer un espacio de apoyo donde cada voz sea escuchada, cada experiencia compartida, y cada persona encuentre un lugar para sanar.</p>
+            
+            <h2>Nuestra Misión</h2>
+            <p>Nuestra misión es brindar apoyo emocional, psicológico y social a quienes han vivido situaciones de maltrato. Silent Shores busca ser un punto de encuentro donde los usuarios puedan compartir sus experiencias, encontrar apoyo mutuo y acceder a recursos que les ayuden en su proceso de recuperación.</p>
+
+            <h2>Nuestra Visión</h2>
+            <p>Convertirnos en una comunidad digital global que promueva la salud mental y el bienestar emocional, ayudando a las personas a superar experiencias difíciles y restaurar su autoestima. Buscamos crear un espacio inclusivo donde todos puedan sentirse aceptados y apoyados.</p>
+
+            <h2>Valores</h2>
+            <ul>
+                <li><strong>Empatía:</strong> Nos importa cada historia y cada persona que forma parte de nuestra comunidad.</li>
+                <li><strong>Confidencialidad:</strong> Garantizamos que todo lo compartido en nuestra plataforma sea tratado con la máxima privacidad.</li>
+                <li><strong>Solidaridad:</strong> Juntos podemos superar los desafíos. Nos apoyamos los unos a los otros en cada paso del camino.</li>
+                <li><strong>Respeto:</strong> Cada voz es importante y cada historia merece ser escuchada sin juicio ni prejuicios.</li>
+            </ul>
+
+            <h2>El Equipo</h2>
+            <p>Detrás de Silent Shores, hay un equipo de profesionales dedicados a crear un espacio seguro para todos nuestros usuarios. Desde expertos en salud mental hasta personas comprometidas con el bienestar de la comunidad, trabajamos juntos para ofrecer el mejor apoyo posible.</p>
+            <div class="equipo">
+                <div class="miembro-equipo">
+                    <img src="imagenes/equipo/jessica.jpg" alt="Jessica Villamares">
+                    <h3>Jessica Villamares </h3>
+                    <p>Fundadora y Directora Ejecutiva</p>
+                    <p>Jessica es una defensora apasionada de la salud mental y el bienestar. Su experiencia personal y profesional la motivaron a crear Silent Shores como un lugar de apoyo y transformación.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="contacto-info">
+            <p>Email: <a href="mailto:jessica@silentshores.com">jessica@silentshores.com</a></p>
+            <p>Teléfono: <a href="tel:+51965775967">+51 965775967</a></p>
+        </div>
+        <div class="social-media">
+            <p>Síguenos en:</p>
+            <a href="#">Facebook</a>
+            <a href="#">Twitter</a>
+            <a href="#">Instagram</a>
+        </div>
+        <p>© 2025 Silent Shores. Todos los derechos reservados.</p>
+    </footer>
+
+    <script>
+        const toggleBtn = document.getElementById("modo-toggle");
+        const body = document.body;
+
+        // Modo claro/oscuro
+        toggleBtn.addEventListener("click", () => {
+            body.classList.toggle("dark-mode");
+            toggleBtn.textContent = body.classList.contains("dark-mode")
+                ? "☀️ Modo Claro"
+                : "🌙 Modo Oscuro";
+        });
+
+        // Mostrar usuario logueado o Anónimo
+        const usuarioInfo = document.getElementById("usuario-info");
+        const usuarioActual = localStorage.getItem("usuarioActual");
+
+        if (usuarioActual) {
+            usuarioInfo.innerHTML = `Usuario: ${usuarioActual} <button id="logout-btn">Logout</button>`;
+            document.getElementById("logout-btn").addEventListener("click", () => {
+                localStorage.removeItem("usuarioActual");
+                location.reload();
+            });
+        } else {
+            usuarioInfo.textContent = "Usuario: Anónimo";
+        }
+    </script>
+</body>
+</html>

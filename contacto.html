@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link rel="icon" href="imagenes/logo.jpg" type="image/jpeg">
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contacto - Silent Shores</title>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+
+    <style>
+        /* Contenedor del usuario arriba a la derecha */
+        #usuario-info {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-weight: bold;
+        }
+
+        #usuario-info button {
+            margin-left: 10px;
+            cursor: pointer;
+        }
+
+        /* Estilo específico para el input de correo */
+        .input-email {
+            font-family: 'Playfair Display', serif;
+            font-size: 1rem; /* Tamaño uniforme con el resto del texto */
+            padding: 6px 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            outline: none;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .input-email:focus {
+            border-color: #7a7a7a;
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
+        }
+
+        /* Estilo general de inputs y textarea */
+        input[type="text"], textarea {
+            font-family: 'Playfair Display', serif;
+            font-size: 1rem;
+            padding: 6px 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+    <header style="position: relative;">
+        <div class="logo">
+            <img src="imagenes/logo.jpg" alt="Silent Shores Logo" class="logo-img">
+            Silent Shores
+        </div>
+        <nav>
+            <ul>
+                <li><a href="index.html">Inicio</a></li>
+                <li><a href="sobre-nosotros.html">Sobre Nosotros</a></li>
+                <li><a href="compartir-historias.html">Compartir Historias</a></li>
+                <li><a href="publicaciones.html">Publicaciones</a></li>
+                <li><a href="contacto.html">Contacto</a></li>
+            </ul>
+        </nav>
+        <button id="modo-toggle" class="modo-toggle">🌙 Modo Oscuro</button>
+        <div id="usuario-info"></div>
+    </header>
+
+    <main>
+        <section id="contacto">
+            <h1>Contáctanos</h1>
+            <p>Si tienes alguna pregunta o deseas compartir algo con nosotros, puedes ponerte en contacto a través del siguiente formulario.</p>
+
+            <!-- Formulario de contacto -->
+            <form id="form-contacto" action="mailto:jessica@silentshores.com" method="POST" enctype="text/plain">
+                <label for="nombre">Nombre:</label><br>
+                <input type="text" id="nombre" name="nombre" required><br><br>
+
+                <label for="email">Correo electrónico:</label><br>
+                <input type="email" id="email" name="email" class="input-email" required><br><br>
+
+                <label for="mensaje">Mensaje:</label><br>
+                <textarea id="mensaje" name="mensaje" rows="5" required></textarea><br><br>
+
+                <button type="submit">Enviar Mensaje</button>
+            </form>
+
+            <div id="informacion-contacto">
+                <h2>Información de Contacto</h2>
+                <p>Si prefieres contactarnos directamente, puedes hacerlo a través de los siguientes canales:</p>
+                <p><strong>Email:</strong> <a href="mailto:jessica@silentshores.com">jessica@silentshores.com</a></p>
+                <p><strong>Teléfono:</strong> <a href="tel:+51965775967">+51 965775967</a></p>
+
+                <h2>Síguenos en nuestras redes sociales:</h2>
+                <p>
+                    <a href="#">Facebook</a> |
+                    <a href="#">Twitter</a> |
+                    <a href="#">Instagram</a>
+                </p>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="contacto-info">
+            <p>Email: <a href="mailto:jessica@silentshores.com">jessica@silentshores.com</a></p>
+            <p>Teléfono: <a href="tel:+51965775967">+51 965775967</a></p>
+        </div>
+        <div class="social-media">
+            <p>Síguenos en:</p>
+            <a href="www.facebook.com/share/165DgjTwSm/" target="_blank">Facebook</a>
+            <a href="#">Twitter</a>
+            <a href="#">Instagram</a>
+        </div>
+        <p>© 2025 Silent Shores. Todos los derechos reservados.</p>
+    </footer>
+
+    <script>
+        const toggleBtn = document.getElementById("modo-toggle");
+        const body = document.body;
+
+        // Modo claro/oscuro
+        toggleBtn.addEventListener("click", () => {
+            body.classList.toggle("dark-mode");
+            toggleBtn.textContent = body.classList.contains("dark-mode")
+                ? "☀️ Modo Claro"
+                : "🌙 Modo Oscuro";
+        });
+
+        // Mostrar usuario logueado o Anónimo
+        const usuarioInfo = document.getElementById("usuario-info");
+        const usuarioActual = localStorage.getItem("usuarioActual");
+
+        if (usuarioActual) {
+            usuarioInfo.innerHTML = `Usuario: ${usuarioActual} <button id="logout-btn">Logout</button>`;
+            document.getElementById("logout-btn").addEventListener("click", () => {
+                localStorage.removeItem("usuarioActual");
+                location.reload();
+            });
+        } else {
+            usuarioInfo.textContent = "Usuario: Anónimo";
+        }
+    </script>
+</body>
+</html>
