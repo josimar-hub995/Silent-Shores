@@ -19,6 +19,13 @@
         padding: 4px 8px;
         border-radius: 8px;
     }
+    .historia-card {
+        background: #fff;
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
 </style>
 </head>
 <body>
@@ -81,6 +88,11 @@
     <div id="historia-preview"></div>
     <button id="publicar-btn">Publicar Historia</button>
 </div>
+
+<hr>
+<h2>📖 Historias compartidas</h2>
+<div id="historias-container"></div>
+
 </section>
 </main>
 
@@ -98,16 +110,28 @@
 <p>© 2025 Silent Shores. Todos los derechos reservados.</p>
 </footer>
 
-<script>
-    // Modo oscuro/claro
-    const toggleBtn = document.getElementById("modo-toggle");
-    const body = document.body;
-    toggleBtn.addEventListener("click", () => {
-        body.classList.toggle("dark-mode");
-        toggleBtn.textContent = body.classList.contains("dark-mode") ? "☀️ Modo Claro" : "🌙 Modo Oscuro";
-    });
+<script type="module">
+    // =======================
+    // 🔹 Firebase Config
+    // =======================
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    // Sesión de usuario global
+    const firebaseConfig = {
+        apiKey: "AIzaSyBaFwwQTwrBtQ_BGf-Imp7FIY7dvkVo5Ho",
+        authDomain: "silent-shores.firebaseapp.com",
+        projectId: "silent-shores",
+        storageBucket: "silent-shores.appspot.com",
+        messagingSenderId: "300326009498",
+        appId: "1:300326009498:web:b095642c0e7cfed7fcfd23"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // =======================
+    // 🔹 Sesión de usuario
+    // =======================
     let usuarioActual = localStorage.getItem("usuarioActual");
     const usuarioDiv = document.getElementById("usuario-actual");
 
@@ -129,27 +153,22 @@
         });
     }
 
-    // Mostrar/ocultar campo nombre de usuario según opción
+    // =======================
+    // 🔹 Lógica del formulario
+    // =======================
     const radioAnonimo = document.getElementById("anonimo");
     const radioUsuario = document.getElementById("usuario");
     const usuarioContainer = document.getElementById("usuario-container");
     const nombreUsuarioInput = document.getElementById("nombre-usuario");
 
-    radioAnonimo.addEventListener("change", ()=>{ 
-        if(radioAnonimo.checked) usuarioContainer.style.display="none"; 
-    });
-
-    radioUsuario.addEventListener("change", ()=>{ 
-        if(radioUsuario.checked){
-            usuarioContainer.style.display="block"; 
-            // Si hay usuario logueado, autocompletar input
-            if(usuarioActual !== "Anónimo"){
-                nombreUsuarioInput.value = usuarioActual;
-            }
+    radioAnonimo.addEventListener("change", ()=> usuarioContainer.style.display="none");
+    radioUsuario.addEventListener("change", ()=> {
+        usuarioContainer.style.display="block";
+        if(usuarioActual !== "Anónimo"){
+            nombreUsuarioInput.value = usuarioActual;
         }
     });
 
-    // Vista previa
     const vistaPreviaBtn = document.getElementById("vista-previa-btn");
     const historiaTextarea = document.getElementById("historia");
     const vistaPreviaDiv = document.getElementById("vista-previa");
@@ -168,32 +187,62 @@
         vistaPreviaDiv.style.display="block";
     });
 
-    // Publicar historia
+    // =======================
+    // 🔹 Publicar historia en Firestore
+    // =======================
     const publicarBtn = document.getElementById("publicar-btn");
-    publicarBtn.addEventListener("click", ()=>{
+    const historiasContainer = document.getElementById("historias-container");
+
+    publicarBtn.addEventListener("click", async ()=>{
         const historia = historiaTextarea.value;
         const opcion = document.querySelector('input[name="opcion"]:checked').value;
         const nombreUsuario = nombreUsuarioInput.value || usuarioActual;
         const tipoViolencia = document.getElementById("tipo-violencia").value;
         const nombreParaPublicar = opcion==="anonimo" ? "Anónimo" : `Usuario: ${nombreUsuario}`;
 
-        const nuevaHistoria = {
+        if(historia.trim() === ""){
+            alert("Por favor escribe tu historia antes de publicar.");
+            return;
+        }
+
+        await addDoc(collection(db, "historias"), {
             nombre: nombreParaPublicar,
             historia: historia,
             tipoViolencia: tipoViolencia,
-            fecha: new Date().toLocaleString()
-        };
-
-        let historiasGuardadas = JSON.parse(localStorage.getItem("historias")) || [];
-        historiasGuardadas.push(nuevaHistoria);
-        localStorage.setItem("historias", JSON.stringify(historiasGuardadas));
+            fecha: new Date()
+        });
 
         alert("¡Tu historia ha sido publicada!");
         historiaTextarea.value="";
         radioAnonimo.checked=true;
         usuarioContainer.style.display="none";
         vistaPreviaDiv.style.display="none";
+
+        cargarHistorias();
     });
+
+    // =======================
+    // 🔹 Cargar historias desde Firestore
+    // =======================
+    async function cargarHistorias(){
+        historiasContainer.innerHTML = "";
+        const q = query(collection(db, "historias"), orderBy("fecha", "desc"));
+        const querySnapshot = await getDocs(q);
+
+        querySnapshot.forEach((doc)=>{
+            const data = doc.data();
+            const div = document.createElement("div");
+            div.classList.add("historia-card");
+            div.innerHTML = `
+                <p><strong>${data.nombre}</strong> (${data.tipoViolencia})</p>
+                <p>${data.historia}</p>
+                <small>${new Date(data.fecha.seconds * 1000).toLocaleString()}</small>
+            `;
+            historiasContainer.appendChild(div);
+        });
+    }
+
+    cargarHistorias();
 </script>
 </body>
 </html>
