@@ -55,6 +55,28 @@
       50% { opacity: 0.9; transform: translateY(-40px) scale(1.2); }
       100% { opacity: 0; transform: translateY(-80px) scale(0.8); }
     }
+
+    /* 🔄 Spinner */
+    .loader {
+      border: 6px solid #f3f3f3;
+      border-top: 6px solid #3498db;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      text-align: center;
+      color: gray;
+      font-size: 1rem;
+    }
   </style>
 </head>
 <body>
@@ -156,9 +178,20 @@
 
     // Renderizar publicaciones
     function cargarHistorias() {
+      historiasLista.innerHTML = `
+        <div class="loader"></div>
+        <p class="loading-text">Cargando publicaciones...</p>
+      `;
+
       const q = query(collection(db, "historias"), orderBy("fecha","desc"));
       onSnapshot(q, (snapshot)=>{
         historiasLista.innerHTML = "";
+
+        if(snapshot.empty){
+          historiasLista.innerHTML = `<p style="text-align:center; color:red;">⚠️ No hay registros disponibles.</p>`;
+          return;
+        }
+
         snapshot.forEach(docSnap=>{
           const historia = docSnap.data();
           const id = docSnap.id;
